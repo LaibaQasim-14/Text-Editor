@@ -4,7 +4,6 @@
 #include <string>
 #include <cstddef>
 
-// Defines the types of editing operations.
 enum class OperationType {
     INSERT_TEXT,
     DELETE_TEXT,
@@ -14,17 +13,18 @@ enum class OperationType {
     SPLIT_LINE
 };
 
-// Stores information required to undo an operation.
 struct EditOperation {
     OperationType type = OperationType::INSERT_TEXT;
 
-    std::size_t lineNumber = 0;
-    std::size_t position = 0;
+    std::size_t line = 0;   // 0-based
+    std::size_t col = 0;    // 0-based
 
     std::string oldText;
     std::string newText;
 
-    // Groups changes belonging to one Replace All operation.
+    // 0 = ordinary operation (not grouped).
+    // Replace All gives every change the same non-zero id (1, 2, 3, ...),
+    // so one undo can reverse the whole group.
     std::size_t groupId = 0;
 };
 

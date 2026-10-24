@@ -1,6 +1,5 @@
 #include "TextUtils.h"
 
-// Inserts text at the specified position.
 bool insertInString(
     std::string& line,
     std::size_t position,
@@ -10,18 +9,23 @@ bool insertInString(
         return false;
     }
 
-    line.insert(position, text);
+    // Built from substr and + only (no insert()).
+    line = line.substr(0, position) + text + line.substr(position);
+
     return true;
 }
 
-// Deletes a specified number of characters.
 bool deleteInString(
     std::string& line,
     std::size_t position,
     std::size_t length,
     std::string& deletedText
 ) {
-    if (position > line.length()) {
+    if (length == 0) {
+        return false;
+    }
+
+    if (position >= line.length()) {
         return false;
     }
 
@@ -30,18 +34,25 @@ bool deleteInString(
     }
 
     deletedText = line.substr(position, length);
-    line.erase(position, length);
+
+    // Built from substr and + only (no erase()).
+    line = line.substr(0, position) + line.substr(position + length);
 
     return true;
 }
 
-// Deletes the word containing the specified position.
 bool deleteWordInString(
     std::string& line,
     std::size_t position,
-    std::string& deletedText
+    std::string& deletedText,
+    std::size_t& startCol
 ) {
     if (position >= line.length()) {
+        return false;
+    }
+
+    // Pointing at a space: there is no word here.
+    if (line[position] == ' ') {
         return false;
     }
 
@@ -49,21 +60,21 @@ bool deleteWordInString(
     std::size_t start = position;
 
     while (start > 0 && line[start - 1] != ' ') {
-        --start;
+        start--;
     }
 
     // Find the end of the word.
     std::size_t end = position;
 
     while (end < line.length() && line[end] != ' ') {
-        ++end;
+        end++;
     }
 
-    // Save the word before deleting it.
+    // Save the word and where it started before deleting it.
     deletedText = line.substr(start, end - start);
+    startCol = start;
 
-    // Remove the word.
-    line.erase(start, end - start);
+    line = line.substr(0, start) + line.substr(end);
 
     return true;
 }
