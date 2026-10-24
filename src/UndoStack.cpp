@@ -1,7 +1,6 @@
-
 #include "UndoStack.h"
 
-// Initially, the stack can store two edit operations.
+// Initially, the stack can store two operations.
 UndoStack::UndoStack()
     : arr(new EditOperation[2]), capacity(2), top(0) {
 }
@@ -11,13 +10,12 @@ UndoStack::~UndoStack() {
     delete[] arr;
 }
 
-// Creates a larger array when the current array is full.
+// Doubles the array capacity when the stack is full.
 void UndoStack::resize() {
     std::size_t newCapacity = capacity * 2;
 
     EditOperation* newArr = new EditOperation[newCapacity];
 
-    // Copy existing operations into the larger array.
     for (std::size_t i = 0; i < top; i++) {
         newArr[i] = arr[i];
     }
@@ -30,7 +28,6 @@ void UndoStack::resize() {
 
 // Adds an operation to the top of the stack.
 void UndoStack::push(const EditOperation& operation) {
-    // Increase capacity if no slots are available.
     if (top == capacity) {
         resize();
     }
@@ -39,8 +36,7 @@ void UndoStack::push(const EditOperation& operation) {
     ++top;
 }
 
-// Removes the most recently added operation.
-// Returns false if the stack is empty.
+// Removes the most recent operation.
 bool UndoStack::pop(EditOperation& operation) {
     if (isEmpty()) {
         return false;
@@ -52,7 +48,7 @@ bool UndoStack::pop(EditOperation& operation) {
     return true;
 }
 
-// Reads the top operation without removing it.
+// Reads the most recent operation without removing it.
 bool UndoStack::peek(EditOperation& operation) const {
     if (isEmpty()) {
         return false;
@@ -62,7 +58,7 @@ bool UndoStack::peek(EditOperation& operation) const {
     return true;
 }
 
-// Checks whether the stack contains any operations.
+// Checks whether the stack is empty.
 bool UndoStack::isEmpty() const {
     return top == 0;
 }
@@ -72,7 +68,21 @@ std::size_t UndoStack::getSize() const {
     return top;
 }
 
-// Removes all operations logically, while keeping allocated memory.
+// Removes all operations logically.
 void UndoStack::clear() {
     top = 0;
+}
+
+// Removes the oldest operation.
+bool UndoStack::removeBottom() {
+    if (isEmpty()) {
+        return false;
+    }
+
+    for (std::size_t i = 1; i < top; i++) {
+        arr[i - 1] = arr[i];
+    }
+
+    --top;
+    return true;
 }
