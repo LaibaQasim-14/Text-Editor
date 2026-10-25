@@ -2,7 +2,7 @@
 #ifndef DOUBLYLINKEDLIST_H
 #define DOUBLYLINKEDLIST_H
 
-#include "Line.h"
+#include "line.h"
 #include <string>
 #include <iosfwd>
 
