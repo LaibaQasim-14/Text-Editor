@@ -1,4 +1,3 @@
-
 #include "Document.h"
 #include "TextUtils.h" //laiba ki file 
 #include <ostream>
@@ -264,7 +263,7 @@ bool Document::deleteWord(int lineIndex, int charPosition)
         return false;
 
     string deletedText;
-    int startCol = 0;
+    size_t startCol = 0;
 
     return deleteWordInString(
         current->text, charPosition, deletedText, startCol);
