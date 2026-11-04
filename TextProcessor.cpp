@@ -1,11 +1,15 @@
+
 #include "TextProcessor.h"
+
+// ==========================================
+// 1. FIND IN STRING
+// ==========================================
 
 int TextProcessor::findInString(
     const std::string& text,
     const std::string& searchText,
     int startPosition
 ) {
-    // Empty patterns are rejected to avoid confusing matches and loops.
     if (searchText.empty() ||
         startPosition < 0 ||
         startPosition > static_cast<int>(text.length())) {
@@ -19,11 +23,14 @@ int TextProcessor::findInString(
         return -1;
     }
 
-    // Naive string-search algorithm.
-    for (int i = startPosition; i <= textLength - patternLength; ++i) {
+    // Naive string searching algorithm.
+    for (int i = startPosition;
+         i <= textLength - patternLength; ++i) {
+
         int j = 0;
 
-        while (j < patternLength && text[i + j] == searchText[j]) {
+        while (j < patternLength &&
+               text[i + j] == searchText[j]) {
             ++j;
         }
 
@@ -34,6 +41,11 @@ int TextProcessor::findInString(
 
     return -1;
 }
+
+
+// ==========================================
+// 2. SEARCH ALL
+// ==========================================
 
 bool TextProcessor::searchAll(
     const Document& document,
@@ -47,9 +59,11 @@ bool TextProcessor::searchAll(
         return false;
     }
 
+    // Traverse every line in the document.
     for (int lineIndex = 0;
          lineIndex < document.getLineCount();
          ++lineIndex) {
+
         const Line* line = document.getLine(lineIndex);
 
         if (line == nullptr) {
@@ -57,17 +71,31 @@ bool TextProcessor::searchAll(
         }
 
         int startPosition = 0;
-                    if (foundPosition == -1) {
+
+        // Search repeatedly inside the current line.
+        while (startPosition <= static_cast<int>(line->text.length())) {
+
+            int foundPosition = findInString(
+                line->text,
+                searchText,
+                startPosition
+            );
+
+            if (foundPosition == -1) {
                 break;
             }
 
-            results.push_back(Match(lineIndex, foundPosition));
+            // Store the line number and column number.
+            results.push_back(
+                Match(lineIndex, foundPosition)
+            );
 
             if (allowOverlapping) {
-                // Move by one character so overlapping matches are included.
+                // Move one character forward.
                 startPosition = foundPosition + 1;
-            } else {
-                // Move past the match so results do not overlap.
+            }
+            else {
+                // Move past the complete matched text.
                 startPosition =
                     foundPosition + static_cast<int>(searchText.length());
             }
@@ -76,6 +104,11 @@ bool TextProcessor::searchAll(
 
     return true;
 }
+
+
+// ==========================================
+// 3. REPLACE OCCURRENCE
+// ==========================================
 
 bool TextProcessor::replaceOccurrence(
     Document& document,
@@ -96,16 +129,19 @@ bool TextProcessor::replaceOccurrence(
         return false;
     }
 
-    const int foundPosition =
-        findInString(line->text, searchText, position.col);
+    int foundPosition = findInString(
+        line->text,
+        searchText,
+        position.col
+    );
 
-    // Require an exact match at the requested column; don't silently replace
-    // a later occurrence if the supplied position is stale or incorrect.
+    // Ensure the match is exactly at the requested position.
     if (foundPosition != position.col) {
         return false;
     }
 
     std::string updatedText = line->text;
+
     updatedText.replace(
         static_cast<std::string::size_type>(position.col),
         searchText.length(),
@@ -116,6 +152,7 @@ bool TextProcessor::replaceOccurrence(
         return false;
     }
 
+    // Save replacement information for Undo.
     record = ReplacementRecord(
         position.line,
         position.col,
@@ -125,6 +162,11 @@ bool TextProcessor::replaceOccurrence(
 
     return true;
 }
+
+
+// ==========================================
+// 4. REPLACE ALL
+// ==========================================
 
 bool TextProcessor::replaceAll(
     Document& document,
@@ -138,12 +180,11 @@ bool TextProcessor::replaceAll(
         return false;
     }
 
-    // Process each line separately. Positions in records refer to the
-    // document state at the moment each replacement was made. Undo should
-    // apply records in reverse order.
+    // Process each document line separately.
     for (int lineIndex = 0;
          lineIndex < document.getLineCount();
          ++lineIndex) {
+
         const Line* line = document.getLine(lineIndex);
 
         if (line == nullptr) {
@@ -154,38 +195,45 @@ bool TextProcessor::replaceAll(
         int startPosition = 0;
 
         while (startPosition <= static_cast<int>(updatedText.length())) {
-            const int foundPosition =
-                findInString(updatedText, searchText, startPosition);
+
+            int foundPosition = findInString(
+                updatedText,
+                searchText,
+                startPosition
+            );
 
             if (foundPosition == -1) {
                 break;
             }
 
-            // Save the old/new text and the position in the current,
-            // progressively updated line.
-            records.push_back(ReplacementRecord(
-                lineIndex,
-                foundPosition,
-                searchText,
-                replacementText
-            ));
+            // Store replacement information for Undo.
+            records.push_back(
+                ReplacementRecord(
+                    lineIndex,
+                    foundPosition,
+                    searchText,
+                    replacementText
+                )
+            );
 
+            // Perform replacement.
             updatedText.replace(
                 static_cast<std::string::size_type>(foundPosition),
                 searchText.length(),
                 replacementText
             );
 
-            // Critical: advance past the newly inserted replacement text.
-            // For example, replacing "a" with "aa" will not loop forever.
+            // Move past the newly inserted replacement.
             startPosition =
                 foundPosition + static_cast<int>(replacementText.length());
         }
 
+        // Update document only if text has changed.
         if (updatedText != line->text) {
+
             if (!document.setLine(lineIndex, updatedText)) {
                 return false;
-                }
+            }
         }
     }
 
