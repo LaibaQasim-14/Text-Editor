@@ -1,3 +1,4 @@
+
 #ifndef TEXTPROCESSOR_H
 #define TEXTPROCESSOR_H
 
@@ -7,8 +8,7 @@
 #include "DynamicArray.h"
 #include "Match.h"
 
-// Information needed to reverse one replacement.
-// For replaceAll(), undo records should be applied in reverse order.
+// Stores information required to undo one replacement.
 struct ReplacementRecord {
     Match position;
     std::string oldText;
@@ -28,17 +28,15 @@ struct ReplacementRecord {
 
 class TextProcessor {
 public:
-    // Returns the first matching index at or after startPosition.
-    // Returns -1 when no match is found or the inputs are invalid.
+
+    // Finds the first occurrence of searchText.
     static int findInString(
         const std::string& text,
         const std::string& searchText,
         int startPosition = 0
     );
 
-    // Searches every line and fills results with zero-based line/column
-    // positions. Returns false if searchText is empty.
-    // allowOverlapping=true also returns overlapping matches.
+    // Searches all document lines.
     static bool searchAll(
         const Document& document,
         const std::string& searchText,
@@ -46,10 +44,7 @@ public:
         bool allowOverlapping = false
     );
 
-    // Replaces one occurrence at the given position.
-    // Returns false if the search text is empty, the position is invalid,
-    // or the text at that position does not match searchText.
-    // On success, record contains the old/new text and position for Undo.
+    // Replaces one occurrence at a given position.
     static bool replaceOccurrence(
         Document& document,
         const Match& position,
@@ -58,11 +53,7 @@ public:
         ReplacementRecord& record
     );
 
-    // Replaces all non-overlapping occurrences across all document lines.
-    // Returns false if searchText is empty.
-    // Each record stores the position at the time that replacement occurred.
-    // To undo these records safely, process them in reverse order.
-    // Returns true when the request is valid, even if no matches were found.
+    // Replaces all non-overlapping occurrences.
     static bool replaceAll(
         Document& document,
         const std::string& searchText,
