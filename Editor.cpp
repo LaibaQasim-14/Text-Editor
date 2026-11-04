@@ -1,6 +1,4 @@
-
 #include "Editor.h"
-
 #include <iostream>
 #include <limits>
 
@@ -10,6 +8,12 @@ Editor::Editor()
       modified(false),
       nextGroupId(1)
 {
+}
+
+// Get document for Menu
+Document& Editor::getDocument()
+{
+    return document;
 }
 
 // Ask the user what to do with unsaved changes
