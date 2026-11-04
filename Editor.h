@@ -1,4 +1,3 @@
-
 #ifndef EDITOR_H
 #define EDITOR_H
 
@@ -36,6 +35,9 @@ public:
 
     // Constructor
     Editor();
+
+    // Get document for Menu
+    Document& getDocument();
 
     // Document and file operations
     bool newDocument();
