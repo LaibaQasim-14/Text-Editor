@@ -130,28 +130,17 @@ bool Document::splitLine(int lineIndex, int charPosition)
 // Display the entire document.
 void Document::display(ostream& out) const
 {
-    lines.display(out);
-}
-
-// Display lines from startLine to endLine, inclusive.
-void Document::displayRange(
-    ostream& out, int startLine, int endLine) const
-{
-    if (startLine < 0 ||
-        endLine < startLine ||
-        endLine >= getLineCount())
-    {
-        return;
-    }
-
-    for (int i = startLine; i <= endLine; i++)
+    for (int i = 0; i < getLineCount(); i++)
     {
         const Line* current = getLine(i);
 
-        out << i << ": " << current->text << '\n';
+        if (current != nullptr)
+        {
+            out << i + 1 << ": "
+                << current->text << '\n';
+        }
     }
 }
-
 // Remove all lines and leave one empty line.
 void Document::clear()
 {

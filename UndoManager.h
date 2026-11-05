@@ -1,3 +1,4 @@
+
 #ifndef UNDOMANAGER_H
 #define UNDOMANAGER_H
 
@@ -10,18 +11,28 @@
 class UndoManager {
 private:
     Stack<EditOperation> history;
+    Stack<EditOperation> redoHistory;
+
     std::size_t limit;
 
     bool applyInverse(const EditOperation& op, Document& doc);
+    bool applyForward(const EditOperation& op, Document& doc);
 
 public:
     UndoManager();
 
     void record(const EditOperation& op);
-    bool undo(Document& doc);   // undoes a whole group if groupId != 0
+
+    bool undo(Document& doc);
+    bool redo(Document& doc);
+
     bool canUndo() const;
+    bool canRedo() const;
+
     void clear();
-    bool setLimit(std::size_t newLimit);   // newLimit >= 1
+
+    bool setLimit(std::size_t newLimit);
+
     std::size_t getLimit() const;
     std::size_t getSize() const;
 };
